@@ -9,30 +9,42 @@ const logger = require( "./logger.js" )
 const waitTimeout = 300000
 
 
-module.exports = async ( executors, tasks, worker ) => {
+module.exports = async ( executors, tasks, worker, logTaskPrefix, logExecutorPrefix ) => {
+
+  if ( !Array.isArray( executors ) || executors.length == 0 ) throw new Error( "No executors" )
+
+  const logTask = logTaskPrefix ? logTaskPrefix : "Task"
+  const logExecutor = logExecutorPrefix ? logExecutorPrefix : "Executor"
 
   const _executors = executors.slice( 0 )
+
+  logger.info( `${ logExecutor }: starting, tasks: ${ tasks.length }, executors: ${ executors.length }` )
 
   for ( let i = 0; i < tasks.length; i++ ) {
 
     const taskNum = i + 1
-    logger.info( `Task ${ taskNum }: starting` )
+    const logPrefix = `${ logTask } ${ taskNum }, ${ tasks[ i ].name }`
 
     if ( _executors.length == 0 ) {
 
-      logger.info( `Task ${ taskNum }: no executors, waiting ...` )
       await wait( () => { return _executors.length > 0 }, waitTimeout )
-      logger.info( `Task ${ taskNum }: executors available, continue` )
     }
 
     const executor = _executors.pop()
 
-    worker( executor, tasks[ i ] ).then( () => {
+    logger.info( `${ logPrefix }: starting on "${ executor.name }"` )
 
-      logger.info( `Task ${ taskNum }: processed` )
+    worker( executor, tasks[ i ], taskNum ).then( () => {
+
+      logger.info( `${ logPrefix }: finished` )
       _executors.push( executor )
     })
   }
 
+  logger.info( `${ logExecutor }: no more tasks, waiting for already running ...` )
+
   await wait( () => { return _executors.length == executors.length }, waitTimeout )
+
+  logger.info( `${ logExecutor }: all tasks finished` )
+  return true
 }

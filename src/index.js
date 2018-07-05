@@ -41,7 +41,7 @@ const getExecutors = ( template, count ) => {
 
   for ( let i = 0; i < count; i++ ) {
 
-    items.push( format( template, i ) )
+    items.push( { name: format( template, i ) } )
   }
 
   return items
@@ -50,7 +50,8 @@ const getExecutors = ( template, count ) => {
 const suite = program.suite
 const executors = getExecutors( program.serversTemplate, program.serversCount )
 
-const main = async ( executors, suite ) => {
+
+const doRun = async ( executors, suite ) => {
 
   let xmlResults = ""
 
@@ -60,7 +61,7 @@ const main = async ( executors, suite ) => {
   }
   catch( err ) {
 
-    logger.error( `fatal, %s`, err )
+    logger.error( `Fatal, ${ err }` )
     process.exit( 1 )
   }
 
@@ -73,7 +74,7 @@ const main = async ( executors, suite ) => {
     await saver.saveToFile( resultsFile, xmlResults )
     saved  = true
 
-    logger.info( `Results saved to file: %s`, resultsFile )
+    logger.info( `Results saved to file: ${ resultsFile }` )
   }
 
   if ( program.storageAccount && program.storageKey && program.storageContainer ) {
@@ -81,21 +82,30 @@ const main = async ( executors, suite ) => {
     await saver.saveToAzure( program.storageAccount, program.storageKey, program.storageContainer, program.fileName, xmlResults )
     saved  = true
 
-    logger.info( `Results saved to azure storage: %s/%s`, program.storageContainer, program.fileName )
+    logger.info( `Results saved to azure storage: ${ program.storageContainer }/${ program.fileName }` )
   }
 
   if ( !saved ) {
 
-    logger.info( `Results:\n%s`, xmlResults )
+    logger.info( `Results:\n${ xmlResults }` )
   }
 }
 
-try {
+const main = async () => {
 
-  main( executors, suite )
-}
-catch( err ) {
+  try {
 
-  logger.error( `fatal: %s`, err )
-  process.exit( 1 )
+    const startTime = Date.now()
+
+    await doRun( executors, suite )
+
+    logger.info( `Time spent: ${ ( Date.now() - startTime ) / 1000 } seconds` )
+  }
+  catch( err ) {
+
+    logger.error( `Fatal: ${ err }` )
+    process.exit( 1 )
+  }
 }
+
+main()
