@@ -16,6 +16,8 @@ const propertiesQuery = "properties&format=json"
 const testQuery = "suite&format=junit"
 
 const httpRetryOptions = { retries: 5, minTimeout: 5000, maxTimeout: 10000 }
+const testRetryOptions = { retries: 5, minTimeout: 10000, maxTimeout: 30000 }
+
 const failedTestRetries = 3
 const failedTestRetryTimeout = 5000
 
@@ -78,13 +80,13 @@ const parseXml = ( xml ) => {
   })
 }
 
-const doRetry = async ( logPrefix, func ) => {
+const doRetry = async ( logPrefix, options, func ) => {
 
   return await retry(
 
     async () => { return await func() },
 
-    _.extend( {}, httpRetryOptions, { onRetry: ( err ) => {
+    _.extend( {}, options, { onRetry: ( err ) => {
 
       logger.warn( `${ logPrefix }: attempt failed - ${ err }` )
     }})
@@ -144,7 +146,7 @@ const runPage = async ( executor, page, num ) => {
 
     const pageUrl = `http://${ executor.name }/${ page.name }`
 
-    const testProperties = await doRetry( logPrefix, async () => {
+    const testProperties = await doRetry( logPrefix, httpRetryOptions, async () => {
 
       logger.info( `${ logPrefix }: querying properties ...` )
       return JSON.parse( await httpFetch( `${ pageUrl }?${ propertiesQuery }` ) )
@@ -162,7 +164,7 @@ const runPage = async ( executor, page, num ) => {
 
         while( true ) {
 
-          const testResult = await doRetry( logPrefix, async () => {
+          const testResult = await doRetry( logPrefix, testRetryOptions, async () => {
 
             logger.info( `${ logPrefix }: executing test ...` )
             const res = await runTest( pageUrl )
@@ -208,7 +210,7 @@ const runPage = async ( executor, page, num ) => {
 
 module.exports = async ( executors, suite ) => {
 
-  const pages = await doRetry( `Runner`, async () => {
+  const pages = await doRetry( `Runner`, httpRetryOptions, async () => {
 
     logger.info( `Runner: querying pages on "${ executors[ 0 ].name }" ...` )
     const pagesList = await httpFetch( `http://${ executors[ 0 ].name }/${ suite }?${ namesQuery }` )

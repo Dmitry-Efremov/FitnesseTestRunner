@@ -6,7 +6,7 @@ const wait = require( "async-wait-until" )
 const logger = require( "./logger.js" )
 
 
-const waitTimeout = 300000
+const waitTimeout = 600000
 
 
 module.exports = async ( executors, tasks, worker, logTaskPrefix, logExecutorPrefix ) => {
