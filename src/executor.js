@@ -6,7 +6,7 @@ const wait = require( "async-wait-until" )
 const logger = require( "./logger.js" )
 
 
-const waitTimeout = 600000
+const waitTimeout = parseInt( process.env.WAIT_TIMEOUT || 600000 )
 
 
 module.exports = async ( executors, tasks, worker, logTaskPrefix, logExecutorPrefix ) => {
@@ -17,33 +17,45 @@ module.exports = async ( executors, tasks, worker, logTaskPrefix, logExecutorPre
   const logExecutor = logExecutorPrefix ? logExecutorPrefix : "Executor"
 
   const _executors = executors.slice( 0 )
+  const busy = {}
 
   logger.info( `${ logExecutor }: starting, tasks: ${ tasks.length }, executors: ${ executors.length }` )
 
-  for ( let i = 0; i < tasks.length; i++ ) {
+  try {
 
-    const taskNum = i + 1
-    const logPrefix = `${ logTask } ${ taskNum }, ${ tasks[ i ].name }`
+    for ( let i = 0; i < tasks.length; i++ ) {
 
-    if ( _executors.length == 0 ) {
+      const taskNum = i + 1
+      const logPrefix = `${ logTask } ${ taskNum }, ${ tasks[ i ].name }`
 
-      await wait( () => { return _executors.length > 0 }, waitTimeout )
+      if ( _executors.length == 0 ) {
+
+        await wait( () => { return _executors.length > 0 }, waitTimeout )
+      }
+
+      const executor = _executors.pop()
+      busy[ executor.name ] = executor
+
+      logger.info( `${ logPrefix }: starting on "${ executor.name }"` )
+
+      worker( executor, tasks[ i ], taskNum ).then( () => {
+
+        logger.info( `${ logPrefix }: finished` )
+
+        _executors.push( executor )
+        delete busy[ executor.name ]
+      })
     }
 
-    const executor = _executors.pop()
+    logger.info( `${ logExecutor }: no more tasks, waiting for already running ...` )
 
-    logger.info( `${ logPrefix }: starting on "${ executor.name }"` )
-
-    worker( executor, tasks[ i ], taskNum ).then( () => {
-
-      logger.info( `${ logPrefix }: finished` )
-      _executors.push( executor )
-    })
+    await wait( () => { return _executors.length == executors.length }, waitTimeout )
   }
+  catch( err ) {
 
-  logger.info( `${ logExecutor }: no more tasks, waiting for already running ...` )
-
-  await wait( () => { return _executors.length == executors.length }, waitTimeout )
+    logger.error( `${ logExecutor }: ${ err }, remaining executors: JSON.stringify( busy )` )
+    throw err
+  }
 
   logger.info( `${ logExecutor }: all tasks finished` )
   return true

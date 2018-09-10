@@ -15,11 +15,22 @@ const namesQuery = "names&Recursive&LeafOnly"
 const propertiesQuery = "properties&format=json"
 const testQuery = "suite&format=junit"
 
-const httpRetryOptions = { retries: 5, minTimeout: 5000, maxTimeout: 10000 }
-const testRetryOptions = { retries: 5, minTimeout: 10000, maxTimeout: 30000 }
+const httpRetryOptions = {
 
-const failedTestRetries = 3
-const failedTestRetryTimeout = 5000
+  retries: parseInt( process.env.HTTP_RETRIES || 5 ),
+  minTimeout: parseInt( process.env.HTTP_RETRIES_MIN_TIMEOUT || 5000 ),
+  maxTimeout: parseInt( process.env.HTTP_RETRIES_MAX_TIMEOUT || 10000 )
+}
+
+const testRetryOptions = {
+
+  retries: parseInt( process.env.TEST_RETRIES || 5 ),
+  minTimeout: parseInt( process.env.TEST_RETRIES_MIN_TIMEOUT || 10000 ),
+  maxTimeout: parseInt( process.env.TEST_RETRIES_MAX_TIMEOUT || 30000 )
+}
+
+const failedTestRetries = parseInt( process.env.FAILED_TEST_RETRIES || 3 )
+const failedTestRetryTimeout = parseInt( process.env.FAILED_TEST_RETRY_TIMEOUT || 5000 )
 
 const results = {
 

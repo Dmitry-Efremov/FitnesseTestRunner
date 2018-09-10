@@ -1,6 +1,6 @@
 {
   "name": "FitnesseTestRunner",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Run Fitnesse tests in parallel.",
   "main": "index.js",
   "license": "MIT",
@@ -9,20 +9,20 @@
     "url": "https://github.com/Dmitry-Efremov/FitnesseTestRunner.git"
   },
   "engines": {
-    "node": "8.11.3"
+    "node": "8.11.4"
   },
   "author": {
     "name": "Dmitry Efremov",
     "email": ""
   },
   "dependencies": {
-    "async-retry": "1.2.1",
+    "async-retry": "1.2.3",
     "async-wait-until": "1.2.4",
-    "azure-storage": "2.10.0",
-    "commander": "2.15.1",
+    "azure-storage": "2.10.1",
+    "commander": "2.18.0",
     "string-format": "2.0.0",
     "underscore": "1.9.1",
-    "winston": "3.0.0",
+    "winston": "3.1.0",
     "xml2js": "0.4.19"
   }
 }
