@@ -1,6 +1,6 @@
 {
   "name": "FitnesseTestRunner",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Run Fitnesse tests in parallel.",
   "main": "index.js",
   "license": "MIT",

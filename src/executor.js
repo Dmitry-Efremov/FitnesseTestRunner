@@ -53,7 +53,7 @@ module.exports = async ( executors, tasks, worker, logTaskPrefix, logExecutorPre
   }
   catch( err ) {
 
-    logger.error( `${ logExecutor }: ${ err }, remaining executors: JSON.stringify( busy )` )
+    logger.error( `${ logExecutor }: ${ err }, remaining executors: ${ JSON.stringify( busy ) }` )
     throw err
   }
 
